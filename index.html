@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Prensa</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Arial', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="max-w-4xl w-full bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h1 class="text-center text-2xl font-bold mb-4">Monitoramento de Prensa</h1>
+
+        <!-- Cronômetro Principal -->
+        <div class="flex flex-col items-center">
+            <div id="timer" class="text-6xl font-bold bg-gray-700 py-6 px-12 rounded-lg mb-4">20</div>
+            <button id="stampButton" class="bg-orange-500 hover:bg-orange-600 text-white text-xl py-2 px-6 rounded-lg font-semibold transition duration-300">Estampar</button>
+        </div>
+
+        <!-- Informações Gerais -->
+        <div class="grid grid-cols-2 gap-4 mt-6">
+            <div class="bg-gray-700 p-4 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Tempo Médio do Ciclo</h2>
+                <p id="averageTime" class="text-2xl">20s</p>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Ciclos Completos</h2>
+                <p id="completedCycles" class="text-2xl">0</p>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Peças Produzidas</h2>
+                <p id="producedPieces" class="text-2xl">0</p>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Eficiência</h2>
+                <canvas id="efficiencyChart" class="mt-2"></canvas>
+            </div>
+        </div>
+
+        <!-- Histórico de Peças -->
+        <div class="bg-gray-700 p-4 rounded-lg mt-6">
+            <h2 class="text-lg font-semibold mb-2">Histórico de Peças</h2>
+            <ul id="history" class="text-sm max-h-32 overflow-y-auto">
+                <li class="text-gray-400">Nenhuma peça registrada ainda.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let timerValue = 20;
+        let completedCycles = 0;
+        let producedPieces = 0;
+        let totalCycleTime = 0;
+        const history = [];
+
+        const timerElement = document.getElementById("timer");
+        const averageTimeElement = document.getElementById("averageTime");
+        const completedCyclesElement = document.getElementById("completedCycles");
+        const producedPiecesElement = document.getElementById("producedPieces");
+        const historyElement = document.getElementById("history");
+        const stampButton = document.getElementById("stampButton");
+
+        // Chart.js setup for efficiency
+        const ctx = document.getElementById('efficiencyChart').getContext('2d');
+        const efficiencyChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Produzidas', 'Restante'],
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: ['#10b981', '#374151'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        function updateEfficiency() {
+            const efficiency = (producedPieces / (completedCycles || 1)) * 100;
+            efficiencyChart.data.datasets[0].data = [efficiency, 100 - efficiency];
+            efficiencyChart.update();
+        }
+
+        function updateHistory(piece) {
+            history.push(piece);
+            historyElement.innerHTML = history.map((item, index) => `<li>Peça ${index + 1}: ${item}</li>`).join("");
+        }
+
+        function resetTimer() {
+            timerValue = 20;
+            timerElement.textContent = timerValue;
+        }
+
+        function simulateCycle() {
+            if (timerValue > 0) {
+                timerValue--;
+                timerElement.textContent = timerValue;
+            } else {
+                clearInterval(cycleInterval);
+                completedCycles++;
+                producedPieces++;
+                totalCycleTime += 20;
+                completedCyclesElement.textContent = completedCycles;
+                producedPiecesElement.textContent = producedPieces;
+                averageTimeElement.textContent = `${(totalCycleTime / completedCycles).toFixed(1)}s`;
+                updateEfficiency();
+                updateHistory(`Peça produzida em 20s`);
+                resetTimer();
+            }
+        }
+
+        let cycleInterval;
+        stampButton.addEventListener("click", () => {
+            if (!cycleInterval) {
+                cycleInterval = setInterval(simulateCycle, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
