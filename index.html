@@ -1,240 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Controle de Ciclos de Produção</title>
-    <style>
-        :root {
-            --primary-color: #4caf50;
-            --secondary-color: #1b1b1b;
-            --text-color: #ffffff;
-            --accent-color: #ff9800;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 600px;
-            padding: 20px;
-            background: #333;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .cronometro {
-            font-size: 48px;
-            margin: 10px 0;
-            color: var(--accent-color);
-        }
-
-        .etapa {
-            font-size: 24px;
-            margin: 10px 0;
-        }
-
-        .btn-estampar {
-            margin: 20px 0;
-            padding: 10px 20px;
-            font-size: 18px;
-            color: var(--text-color);
-            background: var(--primary-color);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .btn-estampar:hover {
-            background: var(--accent-color);
-        }
-
-        .indicadores {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 20px 0;
-        }
-
-        .indicador {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            margin: 0 5px;
-            background: #444;
-            border-radius: 5px;
-        }
-
-        .historico {
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .historico table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .historico th, .historico td {
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #555;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100%;
-                padding: 10px;
-            }
-
-            .cronometro {
-                font-size: 36px;
-            }
-
-            .btn-estampar {
-                font-size: 16px;
-                padding: 8px 16px;
-            }
-
-            .indicadores {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .indicador {
-                margin: 0;
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Controle de Ciclos de Produção - PPS</title>
+<style>
+  :root {
+    --primary-color: #4caf50;
+    --secondary-color: #1b1b1b;
+    --text-color: #ffffff;
+    --accent-color: #ff9800;
+    --alert-color: #ff4444;
+  }
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    display: flex;
+    min-height: 100vh;
+  }
+  .container {
+    flex: 1;
+    max-width: 600px;
+    margin: 20px;
+    background: #333;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cronometro {
+    font-size: 48px;
+    margin: 10px 0;
+    color: var(--accent-color);
+    user-select: none;
+  }
+  .cronometro.alert {
+    color: var(--alert-color);
+    animation: piscar 1s infinite;
+  }
+  @keyframes piscar {
+    0%, 100% {opacity: 1;}
+    50% {opacity: 0;}
+  }
+  .etapa {
+    font-size: 24px;
+    margin: 10px 0;
+    user-select: none;
+  }
+  .btn-estampar {
+    margin: 20px 0;
+    padding: 10px 20px;
+    font-size: 18px;
+    color: var(--text-color);
+    background: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    user-select: none;
+  }
+  .btn-estampar:hover {
+    background: var(--accent-color);
+  }
+  .btn-parar {
+    padding: 10px 20px;
+    font-size: 18px;
+    color: #fff;
+    background: #ff4444;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+  }
+  .btn-parar:hover {
+    background: #ff9800;
+  }
+  .indicadores {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin: 20px 0;
+  }
+  .indicador {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    margin: 0 5px;
+    background: #444;
+    border-radius: 5px;
+    user-select: none;
+  }
+  .historico {
+    width: 100%;
+    margin-top: 20px;
+    max-height: 180px;
+    overflow-y: auto;
+    background: #222;
+    border-radius: 5px;
+  }
+  .historico table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-color);
+  }
+  .historico th, .historico td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #555;
+    font-size: 14px;
+  }
+  /* Menu lateral */
+  .sidebar {
+    width: 320px;
+    background: #222;
+    padding: 20px;
+    box-shadow: inset 0 0 8px #000;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar h2 {
+    margin-bottom: 15px;
+    user-select: none;
+  }
+  .form-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .form-group label {
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="number"] {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
+  }
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .btn-group button {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    background: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .btn-group button:hover {
+    background: var(--accent-color);
+  }
+  .lista-pecas {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .lista-pecas div {
+    padding: 8px;
+    background: #333;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .lista-pecas div.selected {
+    background: var(--primary-color);
+  }
+  /* Mensagem prensa parada */
+  .msg-prensa-parada {
+    margin-top: 15px;
+    color: var(--alert-color);
+    font-weight: bold;
+    user-select: none;
+  }
+  @media (max-width: 900px) {
+    body {
+      flex-direction: column;
+      align-items: center;
+    }
+    .sidebar {
+      width: 90%;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 90%;
+      margin: 0 10px 20px;
+    }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="cronometro" id="cronometro">20</div>
-        <div class="etapa" id="etapa">Pegar a Peça</div>
-        <button class="btn-estampar" id="btn-estampar">Estampar</button>
-        <div class="indicadores">
-            <div class="indicador">Ciclos: <span id="ciclos">0</span></div>
-            <div class="indicador">Peças: <span id="pecas">0</span></div>
-            <div class="indicador">Eficiência: <span id="eficiencia">0%</span></div>
-        </div>
-        <div class="historico">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Início</th>
-                        <th>Fim</th>
-                        <th>Tempo Restante</th>
-                    </tr>
-                </thead>
-                <tbody id="historico"></tbody>
-            </table>
-        </div>
+  <div class="sidebar">
+    <h2>Configurar Peça</h2>
+    <div class="form-group">
+      <label for="input-peca">Peça</label>
+      <input type="text" id="input-peca" placeholder="Nome da peça" />
     </div>
+    <div class="form-group">
+      <label for="input-ciclo">Duração do Ciclo (segundos)</label>
+      <input type="number" id="input-ciclo" min="1" max="60" value="25" />
+    </div>
+    <div class="form-group">
+      <label for="input-pecas-ciclo">Peças por Ciclo</label>
+      <input type="number" id="input-pecas-ciclo" min="1" value="2" />
+    </div>
+    <div class="btn-group">
+      <button id="btn-salvar">Salvar</button>
+      <button id="btn-excluir">Excluir</button>
+      <button id="btn-iniciar">Iniciar Produção</button>
+    </div>
+    <h3>Peças Salvas</h3>
+    <div class="lista-pecas" id="lista-pecas"></div>
+  </div>
 
-    <script>
-        const cronometro = document.getElementById('cronometro');
-        const etapa = document.getElementById('etapa');
-        const btnEstampar = document.getElementById('btn-estampar');
-        const ciclos = document.getElementById('ciclos');
-        const pecas = document.getElementById('pecas');
-        const eficiencia = document.getElementById('eficiencia');
-        const historico = document.getElementById('historico');
+  <div class="container">
+    <div class="cronometro" id="cronometro">0</div>
+    <div class="etapa" id="etapa">Aguardando Início</div>
+    <button class="btn-estampar" id="btn-estampar" disabled>Prensa</button>
+    <button class="btn-parar" id="btn-parar" style="margin-bottom:10px;">Parar Produção</button>
+    <div class="indicadores">
+      <div class="indicador">Ciclos: <span id="ciclos">0</span></div>
+      <div class="indicador">Peças: <span id="pecas">0</span></div>
+      <div class="indicador">Eficiência: <span id="eficiencia">0%</span></div>
+    </div>
+    <div class="msg-prensa-parada" id="msg-prensa-parada" style="display:none;">
+      Prensa Parada - Aperte o botão para reiniciar
+    </div>
+    <div class="historico">
+      <table>
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody id="historico"></tbody>
+      </table>
+    </div>
+  </div>
 
-        let tempoTotal = 20;
-        let tempoAtual = tempoTotal;
-        let etapaAtual = 0;
-        let totalCiclos = 0;
-        let totalPecas = 0;
-        let cicloEmAndamento = false;
+<script>
+/*
+  Sistema de Controle de Produção - Estamparia
+  Autor: [Seu Nome]
+  Descrição: Cronômetro regressivo, registro de ciclos, peças, eficiência e histórico de eventos.
+*/
 
-        const etapas = [
-            { nome: 'Pegar a Peça', tempo: 5 },
-            { nome: 'Posicionar', tempo: 5 },
-            { nome: 'Estampar', tempo: 5 },
-            { nome: 'Retirar', tempo: 5 }
-        ];
+// Elementos principais
+const cronometro = document.getElementById('cronometro');
+const etapa = document.getElementById('etapa');
+const btnEstampar = document.getElementById('btn-estampar');
+const btnParar = document.getElementById('btn-parar');
+const ciclosSpan = document.getElementById('ciclos');
+const pecasSpan = document.getElementById('pecas');
+const eficienciaSpan = document.getElementById('eficiencia');
+const historicoTbody = document.getElementById('historico');
+const msgPrensaParada = document.getElementById('msg-prensa-parada');
 
-        function atualizarCronometro() {
-            if (tempoAtual > 0) {
-                tempoAtual--;
-                cronometro.textContent = tempoAtual;
+// Sidebar
+const inputPeca = document.getElementById('input-peca');
+const inputCiclo = document.getElementById('input-ciclo');
+const inputPecasCiclo = document.getElementById('input-pecas-ciclo');
+const btnSalvar = document.getElementById('btn-salvar');
+const btnExcluir = document.getElementById('btn-excluir');
+const btnIniciar = document.getElementById('btn-iniciar');
+const listaPecas = document.getElementById('lista-pecas');
 
-                const tempoEtapa = etapas[etapaAtual].tempo;
-                if (tempoAtual <= tempoTotal - tempoEtapa * etapaAtual) {
-                    etapaAtual++;
-                    if (etapaAtual < etapas.length) {
-                        etapa.textContent = etapas[etapaAtual].nome;
-                    }
-                }
-            } else {
-                registrarCiclo();
-                reiniciarCiclo();
-            }
-        }
+// Variáveis de controle
+let pecasSalvas = JSON.parse(localStorage.getItem('pecasSalvas') || '[]');
+let selecionadaIndex = null;
 
-        function registrarCiclo() {
-            totalCiclos++;
-            totalPecas += 2;
+let timer = null;
+let tempoRestante = 0;
+let cicloDuracao = 25;
+let pecasPorCiclo = 2;
+let cicloEmAndamento = false;
+let ciclosFinalizados = 0;
+let pecasProduzidas = 0;
+let eficiencia = 0;
+let tempoParadoTotal = 0;
+let tempoParadaInicio = null;
 
-            const inicio = new Date();
-            const fim = new Date();
+// Atualiza lista lateral de peças
+function atualizarListaPecas() {
+  listaPecas.innerHTML = '';
+  pecasSalvas.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.textContent = `${p.nome} (Ciclo: ${p.ciclo}s, Peças/ciclo: ${p.pecasPorCiclo})`;
+    div.classList.toggle('selected', i === selecionadaIndex);
+    div.onclick = () => {
+      selecionadaIndex = i;
+      carregarPecaSelecionada();
+      atualizarListaPecas();
+    };
+    listaPecas.appendChild(div);
+  });
+}
 
-            historico.innerHTML += `<tr><td>${inicio.toLocaleTimeString()}</td><td>${fim.toLocaleTimeString()}</td><td>${tempoAtual}</td></tr>`;
+// Carrega peça selecionada no formulário
+function carregarPecaSelecionada() {
+  if (selecionadaIndex === null) {
+    inputPeca.value = '';
+    inputCiclo.value = 25;
+    inputPecasCiclo.value = 2;
+    btnEstampar.disabled = true;
+    etapa.textContent = 'Aguardando Início';
+    cronometro.textContent = '0';
+    return;
+  }
+  const p = pecasSalvas[selecionadaIndex];
+  inputPeca.value = p.nome;
+  inputCiclo.value = p.ciclo;
+  inputPecasCiclo.value = p.pecasPorCiclo;
+  cicloDuracao = p.ciclo;
+  pecasPorCiclo = p.pecasPorCiclo;
+  btnEstampar.disabled = true;
+  etapa.textContent = 'Aguardando Início';
+  cronometro.textContent = cicloDuracao;
+  pararCiclo();
+}
 
-            ciclos.textContent = totalCiclos;
-            pecas.textContent = totalPecas;
+// Salvar peça nova ou atualizada
+btnSalvar.addEventListener('click', () => {
+  const nome = inputPeca.value.trim();
+  const ciclo = parseInt(inputCiclo.value);
+  const pecasCiclo = parseInt(inputPecasCiclo.value);
+  if (!nome || isNaN(ciclo) || ciclo < 1 || ciclo > 60 || isNaN(pecasCiclo) || pecasCiclo < 1) {
+    alert('Preencha todos os campos corretamente.');
+    return;
+  }
+  const p = { nome, ciclo, pecasPorCiclo: pecasCiclo };
+  if (selecionadaIndex === null) {
+    pecasSalvas.push(p);
+    selecionadaIndex = pecasSalvas.length - 1;
+  } else {
+    pecasSalvas[selecionadaIndex] = p;
+  }
+  localStorage.setItem('pecasSalvas', JSON.stringify(pecasSalvas));
+  cicloDuracao = ciclo;
+  pecasPorCiclo = pecasCiclo;
+  atualizarListaPecas();
+  alert('Peça salva com sucesso.');
+  btnEstampar.disabled = true;
+  etapa.textContent = 'Aguardando Início';
+  cronometro.textContent = cicloDuracao;
+});
 
-            const eficienciaCalc = (totalCiclos * 2 / (3600 / tempoTotal)) * 100;
-            eficiencia.textContent = `${eficienciaCalc.toFixed(2)}%`;
-        }
+// Excluir peça selecionada
+btnExcluir.addEventListener('click', () => {
+  if (selecionadaIndex === null) {
+    alert('Nenhuma peça selecionada.');
+    return;
+  }
+  if (!confirm(`Excluir a peça "${pecasSalvas[selecionadaIndex].nome}"?`)) return;
+  pecasSalvas.splice(selecionadaIndex,1);
+  selecionadaIndex = null;
+  localStorage.setItem('pecasSalvas', JSON.stringify(pecasSalvas));
+  atualizarListaPecas();
+  carregarPecaSelecionada();
+});
 
-        function reiniciarCiclo() {
-            tempoAtual = tempoTotal;
-            etapaAtual = 0;
-            etapa.textContent = etapas[etapaAtual].nome;
-            cronometro.textContent = tempoAtual;
-            cicloEmAndamento = false;
-        }
+// Iniciar produção da peça selecionada
+btnIniciar.addEventListener('click', () => {
+  if (selecionadaIndex === null) {
+    alert('Selecione uma peça para iniciar produção.');
+    return;
+  }
+  if (cicloEmAndamento) {
+    alert('Ciclo já em andamento.');
+    return;
+  }
+  cicloDuracao = pecasSalvas[selecionadaIndex].ciclo;
+  pecasPorCiclo = pecasSalvas[selecionadaIndex].pecasPorCiclo;
+  tempoRestante = cicloDuracao;
+  iniciarCiclo();
+});
 
-        let interval;
-        btnEstampar.addEventListener('click', () => {
-            if (!cicloEmAndamento) {
-                cicloEmAndamento = true;
-                const inicio = new Date();
-                historico.innerHTML += `<tr><td>${inicio.toLocaleTimeString()}</td><td>-</td><td>-</td></tr>`;
-                interval = setInterval(atualizarCronometro, 1000);
-            }
+// Atualiza indicadores
+function atualizarIndicadores() {
+  ciclosSpan.textContent = ciclosFinalizados;
+  pecasSpan.textContent = pecasProduzidas;
+  eficiencia = ciclosFinalizados > 0 ? Math.min(100, Math.round((ciclosFinalizados * cicloDuracao) / (ciclosFinalizados * cicloDuracao + tempoParadoTotal) * 100)) : 0;
+  eficienciaSpan.textContent = eficiencia + '%';
+}
 
-            // Incrementa ciclos e peças imediatamente no clique do botão
-            totalCiclos++;
-            totalPecas += 2;
-            ciclos.textContent = totalCiclos;
-            pecas.textContent = totalPecas;
+// Adiciona evento ao histórico
+function adicionarHistorico(evento, inicio, fim, detalhes) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${evento}</td><td>${inicio}</td><td>${fim}</td><td>${detalhes}</td>`;
+  historicoTbody.prepend(tr);
+}
 
-            // Atualiza eficiência
-            const eficienciaCalc = (totalCiclos * 2 / (3600 / tempoTotal)) * 100;
-            eficiencia.textContent = `${eficienciaCalc.toFixed(2)}%`;
-        });
-    </script>
+// Inicia ciclo produtivo
+function iniciarCiclo() {
+  cicloEmAndamento = true;
+  msgPrensaParada.style.display = 'none';
+  btnEstampar.disabled = false;
+  etapa.textContent = 'Ciclo em andamento';
+  let tempoDecorrido = 0;
+  cronometro.textContent = tempoDecorrido;
+  cronometro.classList.remove('alert');
+
+  // Se estava em parada, registra no histórico
+  if (tempoParadaInicio !== null) {
+    const fimParada = new Date();
+    const inicioParadaStr = tempoParadaInicio.toLocaleTimeString();
+    const fimParadaStr = fimParada.toLocaleTimeString();
+    const duracaoParadaSegs = Math.floor((fimParada - tempoParadaInicio) / 1000);
+    tempoParadoTotal += duracaoParadaSegs;
+    adicionarHistorico('Parada', inicioParadaStr, fimParadaStr, `Duração: ${duracaoParadaSegs}s`);
+    tempoParadaInicio = null;
+  }
+
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    tempoDecorrido++;
+    cronometro.textContent = tempoDecorrido;
+
+    // Piscar vermelho nos últimos 5 segundos
+    if (cicloDuracao - tempoDecorrido < 5 && cicloDuracao - tempoDecorrido >= 0) {
+      cronometro.classList.add('alert');
+    } else {
+      cronometro.classList.remove('alert');
+    }
+
+    if (tempoDecorrido >= cicloDuracao) {
+      cronometro.textContent = cicloDuracao;
+      cronometro.classList.add('alert');
+      pararCiclo();
+      msgPrensaParada.style.display = 'block';
+      etapa.textContent = 'Parada';
+      // Registra início da parada
+      tempoParadaInicio = new Date();
+    }
+  }, 1000);
+
+  // Registro do início do ciclo no histórico
+  const agora = new Date();
+  adicionarHistorico('Início de ciclo', agora.toLocaleTimeString(), '-', `Peça: ${inputPeca.value}`);
+}
+
+// Para o ciclo
+function pararCiclo() {
+  cicloEmAndamento = false;
+  if (timer) clearInterval(timer);
+  btnEstampar.disabled = true;
+  etapa.textContent = 'Aguardando Início';
+  cronometro.classList.remove('alert');
+}
+
+// Botão Parar: Para a produção manualmente
+btnParar.addEventListener('click', () => {
+  if (!cicloEmAndamento) return;
+  pararCiclo();
+  msgPrensaParada.style.display = 'block';
+  etapa.textContent = 'Parada';
+  tempoParadaInicio = new Date();
+  adicionarHistorico('Parada manual', tempoParadaInicio.toLocaleTimeString(), '-', 'Parada solicitada pelo operador');
+});
+
+// Botão Prensa: Finaliza ciclo, registra produção e já reinicia ciclo
+btnEstampar.addEventListener('click', () => {
+  if (!cicloEmAndamento) {
+    msgPrensaParada.style.display = 'none';
+    iniciarCiclo();
+    return;
+  }
+  ciclosFinalizados++;
+  pecasProduzidas += pecasPorCiclo;
+  const fimCiclo = new Date();
+  const inicioCicloStr = new Date(fimCiclo.getTime() - cicloDuracao * 1000).toLocaleTimeString();
+  const fimCicloStr = fimCiclo.toLocaleTimeString();
+  adicionarHistorico('Ciclo finalizado', inicioCicloStr, fimCicloStr, `Peças produzidas: ${pecasPorCiclo}`);
+  atualizarIndicadores();
+  pararCiclo();
+  // Reinicia automaticamente o ciclo
+  iniciarCiclo();
+});
+
+// Se a prensa não for usada por 1 minuto, começa a contar parada
+let tempoSemAtividade = 0;
+setInterval(() => {
+  if (!cicloEmAndamento && !msgPrensaParada.style.display.includes('block')) {
+    tempoSemAtividade++;
+    if (tempoSemAtividade >= 60 && tempoParadaInicio === null) {
+      tempoParadaInicio = new Date();
+    }
+  } else {
+    tempoSemAtividade = 0;
+  }
+}, 1000);
+
+// Inicializações
+atualizarListaPecas();
+carregarPecaSelecionada();
+atualizarIndicadores();
+</script>
 </body>
 </html>
